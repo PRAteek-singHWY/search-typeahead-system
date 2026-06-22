@@ -1,0 +1,66 @@
+# Services:
+#   postgres            - durable source of truth (query -> count)
+#   cache-0/1/2         - three logical cache nodes; consistent hashing routes a
+#                         prefix to exactly one of them
+#   redis-meta          - trending + recent-activity window (not sharded)
+#   backend             - the FastAPI app
+#
+# `docker compose up --build` starts everything wired together.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: typeahead
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  cache-0:
+    image: redis:7-alpine
+    healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 3s, timeout: 3s, retries: 10 }
+
+  cache-1:
+    image: redis:7-alpine
+    healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 3s, timeout: 3s, retries: 10 }
+
+  cache-2:
+    image: redis:7-alpine
+    healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 3s, timeout: 3s, retries: 10 }
+
+  redis-meta:
+    image: redis:7-alpine
+    healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 3s, timeout: 3s, retries: 10 }
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: typeahead
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      # Three logical cache nodes; the app builds a consistent-hash ring over these.
+      CACHE_NODES: "cache-0:6379,cache-1:6379,cache-2:6379"
+      META_HOST: redis-meta
+      META_PORT: 6379
+      DATASET_SIZE: 100000
+    depends_on:
+      postgres: { condition: service_healthy }
+      cache-0: { condition: service_healthy }
+      cache-1: { condition: service_healthy }
+      cache-2: { condition: service_healthy }
+      redis-meta: { condition: service_healthy }
+
+volumes:
+  pgdata:

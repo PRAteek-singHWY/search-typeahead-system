@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Search Typeahead</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <main class="app">
+    <h1>Search Typeahead</h1>
+    <p class="subtitle">Suggestions are ranked by popularity. Toggle ranking to see recency take effect.</p>
+
+    <!-- Ranking mode toggle: basic (overall count) vs recency-aware -->
+    <div class="ranking" role="group" aria-label="Ranking mode">
+      <label><input type="radio" name="ranking" value="basic" checked /> Basic (overall count)</label>
+      <label><input type="radio" name="ranking" value="recency" /> Recency-aware</label>
+    </div>
+
+    <div class="search-wrap">
+      <div class="search-row">
+        <input
+          id="search-box"
+          type="text"
+          autocomplete="off"
+          aria-label="Search"
+          placeholder="Try: iphone, how to, python, weather..."
+        />
+        <button id="search-btn" type="button">Search</button>
+      </div>
+      <span id="status-tag" class="status-tag" aria-live="polite"></span>
+      <!-- Suggestion dropdown; arrow keys navigate, Enter selects -->
+      <ul id="suggestions" class="suggestions" role="listbox"></ul>
+    </div>
+
+    <!-- Shows the dummy search response from POST /search -->
+    <div id="response-box" class="response-box" hidden></div>
+
+    <section class="trending">
+      <h2>Trending now</h2>
+      <ol id="trending-list"></ol>
+      <p class="hint">Submit a query (Enter, the Search button, or click a suggestion) to make it trend.</p>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
