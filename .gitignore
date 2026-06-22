@@ -9,3 +9,6 @@ backend/data/*.csv
 
 # OS
 .DS_Store
+
+# Build artifact
+Project_Report.html
